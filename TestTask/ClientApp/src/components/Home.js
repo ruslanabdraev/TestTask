@@ -1,10 +1,68 @@
 import React, { Component } from 'react';
+import authService from "./api-authorization/AuthorizeService";
 
 export class Home extends Component {
   static displayName = Home.name;
 
+  /*
+  * 
+  * {
+    "id": "84f53fe8-4fb9-42bc-b036-178801832171",
+    "userName": "test@test.test",
+    "normalizedUserName": "TEST@TEST.TEST",
+    "email": "test@test.test",
+    "normalizedEmail": "TEST@TEST.TEST",
+    "emailConfirmed": true,
+    "passwordHash": "AQAAAAEAACcQAAAAEK95ZKMO1wRY10xLJyWLy8RiH/4u4YTqyBcPp32moyh8fyaIrkDykYReu4p47gnR+Q==",
+    "securityStamp": "HPLIBIRZDFEUXM3VUVKBCWCUNTLSGPYS",
+    "concurrencyStamp": "04cfb884-f809-4528-8c2f-9a8231f27d80",
+    "phoneNumber": null,
+    "phoneNumberConfirmed": false,
+    "twoFactorEnabled": false,
+    "lockoutEnd": null,
+    "lockoutEnabled": true,
+    "accessFailedCount": 0
+  }
+  * */
+    
+    constructor() {
+        super();
+        this.state = { users: [], loading: true };
+    }
+  
+    componentDidMount() {
+        this.populateUsersData();
+    }
+
+    static renderUsersTable(users) {
+        return (
+            <table className='table table-striped' aria-labelledby="tabelLabel">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>User Name</th>
+                    <th>Email</th>
+                </tr>
+                </thead>
+                <tbody>
+                {users.map(user =>
+                    <tr key={user.id}>
+                        <td>{user.id}</td>
+                        <td>{user.userName}</td>
+                        <td>{user.email}</td>
+                    </tr>
+                )}
+                </tbody>
+            </table>
+        );
+    }
+
   render () {
-    return (
+      let contents = this.state.loading
+          ? <p><em>Loading...</em></p>
+          : Home.renderUsersTable(this.state.users);
+
+      return (
       <div>
         <h1>Hello, world!</h1>
         <p>Welcome to your new single-page application, built with:</p>
@@ -20,7 +78,21 @@ export class Home extends Component {
           <li><strong>Efficient production builds</strong>. In production mode, development-time features are disabled, and your <code>dotnet publish</code> configuration produces minified, efficiently bundled JavaScript files.</li>
         </ul>
         <p>The <code>ClientApp</code> subdirectory is a standard React application based on the <code>create-react-app</code> template. If you open a command prompt in that directory, you can run <code>npm</code> commands such as <code>npm test</code> or <code>npm install</code>.</p>
+          <div>
+              <h2 id="tabelLabel" >Users</h2>
+              {contents}
+          </div>
       </div>
     );
+  }
+
+  async populateUsersData(){
+      const token = await authService.getAccessToken();
+      const response = await fetch('user', {
+          headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      this.setState({ users: data, loading: false });
+
   }
 }
