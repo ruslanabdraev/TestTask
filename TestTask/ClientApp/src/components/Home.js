@@ -27,7 +27,7 @@ export class Home extends Component {
     
     constructor() {
         super();
-        this.state = { users: [], loading: true };
+        this.state = { currentUser: null, isAuthenticated: false, users: [], loading: true };
     }
   
     componentDidMount() {
@@ -45,8 +45,11 @@ export class Home extends Component {
         
     }
     
-    static renderUsersTable(users) {
+    static renderUsersTable(users){
+        
         return (
+            <div>
+                <h2 id="tabelLabel" >Users</h2>
             <table className='table table-striped' aria-labelledby="tabelLabel">
                 <thead>
                 <tr>
@@ -69,13 +72,14 @@ export class Home extends Component {
                 )}
                 </tbody>
             </table>
+            </div>
         );
     }
 
   render () {
-      let contents = this.state.loading
+      let contents = this.state.loading 
           ? <p><em>Loading...</em></p>
-          : Home.renderUsersTable(this.state.users);
+          :  Home.renderUsersTable(this.state.users);
 
       return (
       <div>
@@ -93,21 +97,24 @@ export class Home extends Component {
           <li><strong>Efficient production builds</strong>. In production mode, development-time features are disabled, and your <code>dotnet publish</code> configuration produces minified, efficiently bundled JavaScript files.</li>
         </ul>
         <p>The <code>ClientApp</code> subdirectory is a standard React application based on the <code>create-react-app</code> template. If you open a command prompt in that directory, you can run <code>npm</code> commands such as <code>npm test</code> or <code>npm install</code>.</p>
-          <div>
-              <h2 id="tabelLabel" >Users</h2>
-              {contents}
-          </div>
+          {this.state.isAuthenticated && contents}
       </div>
     );
   }
 
   async populateUsersData(){
-      const token = await authService.getAccessToken();
-      const response = await fetch('user', {
-          headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      this.setState({ users: data, loading: false });
-
+      const flag = await authService.isAuthenticated();
+      
+      if(flag) {
+          const user = await authService.getUser();
+          const token = await authService.getAccessToken();
+          const response = await fetch('user', {
+              headers: !token ? {} : {'Authorization': `Bearer ${token}`}
+          });
+          const data = await response.json();
+          this.setState({ currentUser: user, isAuthenticated: flag, users: data, loading: false});
+      }else{
+          this.setState({ currentUser: null, isAuthenticated: flag, users: [], loading: false});
+      }
   }
 }
