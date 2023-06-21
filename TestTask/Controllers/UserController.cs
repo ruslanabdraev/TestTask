@@ -25,5 +25,13 @@ namespace TestTask.Controllers
 
             return Ok(users);
         }
+
+        [HttpDelete("{id}")]
+        public async Task DeleteUserAsync([FromRoute] string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            await _userManager.DeleteAsync(user);
+        }
     }
 }

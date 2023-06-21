@@ -34,6 +34,17 @@ export class Home extends Component {
         this.populateUsersData();
     }
 
+    static deleteUser = async (id) => {
+        console.log(id);
+        const token = await authService.getAccessToken();
+        const response = await fetch('user/' + id, {
+            headers: !token ? {} : { 'Authorization': `Bearer ${token}` },
+            method: 'DELETE',
+        });
+        
+        
+    }
+    
     static renderUsersTable(users) {
         return (
             <table className='table table-striped' aria-labelledby="tabelLabel">
@@ -42,6 +53,7 @@ export class Home extends Component {
                     <th>Id</th>
                     <th>User Name</th>
                     <th>Email</th>
+                    <th>Delete</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -50,6 +62,9 @@ export class Home extends Component {
                         <td>{user.id}</td>
                         <td>{user.userName}</td>
                         <td>{user.email}</td>
+                        <td>
+                            <button onClick={() => this.deleteUser(user.id)}>delete</button>
+                        </td>
                     </tr>
                 )}
                 </tbody>
